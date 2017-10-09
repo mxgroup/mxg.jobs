@@ -67,7 +67,7 @@
     <Compile Include="ConsoleHelper.cs" />
     <Compile Include="CustomJobFactory.cs" />
     <Compile Include="JobsApplication.cs" />
-    <Compile Include="QuartzJob.cs" />
+    <Compile Include="SingleCallCronJob.cs" />
     <Compile Include="AsyncHelper.cs" />
     <Compile Include="CronHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

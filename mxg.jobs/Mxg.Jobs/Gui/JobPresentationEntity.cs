@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using Quartz;
 
 namespace Mxg.Jobs.Gui
 {
@@ -13,22 +11,22 @@ namespace Mxg.Jobs.Gui
         private string _name;
         private string _status;
 
-        public JobPresentationEntity(KeyValuePair<QuartzJob4, IScheduler> job)
+        public JobPresentationEntity(SingleCallCronJob job)
         {
-            Name = job.Key.GetType().Name;
+            Name = job.GetType().Name;
 
-            ExecuteOnceCommand = new RelayCommand(param => job.Key.Execute());
+            ExecuteOnceCommand = new RelayCommand(param => job.Execute());
             StartCommand = new RelayCommand(param =>
             {
-                job.Value.Start();
+                job.Start();
                 Status = StartedStatusText;
             });
             StopCommand = new RelayCommand(param =>
             {
-                job.Value.Shutdown();
+                job.Stop();
                 Status = StoppedStatusText;
             });
-            
+
             Status = StoppedStatusText;
         }
 

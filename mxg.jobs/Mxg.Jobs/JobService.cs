@@ -7,18 +7,14 @@ namespace Mxg.Jobs
 {
     internal class JobService : ServiceBase
     {
-        private readonly Dictionary<QuartzJob4, IScheduler> _jobDictionary;
-        //private readonly IScheduler _scheduler;
+        private readonly List<SingleCallCronJob> _jobs;
+
         public event Action Started;
         public event Action Stopped;
 
-        //private readonly IEnumerable<IQuartzJob> _jobs;
-
-        public JobService(Dictionary<QuartzJob4, IScheduler> jobDictionary)
+        public JobService(List<SingleCallCronJob> jobs)
         {
-            _jobDictionary = jobDictionary;
-            //_scheduler = scheduler;
-            //_jobs = jobs;
+            _jobs = jobs;
             ServiceName = GetType().Name;
         }
 
@@ -50,18 +46,18 @@ namespace Mxg.Jobs
 
         private void StartJobs()
         {
-            //foreach (var job in _jobs)
-            //{
-            //    //job.Start();
-            //}
+            foreach (var job in _jobs)
+            {
+                job.Start();
+            }
         }
 
         private void StopJobs()
         {
-            //foreach (var job in _jobs)
-            //{
-            //    //job.Stop();
-            //}
+            foreach (var job in _jobs)
+            {
+                job.Stop();
+            }
         }
     }
 }

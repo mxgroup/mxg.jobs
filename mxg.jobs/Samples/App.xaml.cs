@@ -23,7 +23,7 @@ namespace Samples
             var container = new Container();
             
             // Запуск
-            var app = new JobsApplication(jobList, type => (QuartzJob4)container.GetInstance(type));
+            var app = new JobsApplication(jobList, type => (SingleCallCronJob)container.GetInstance(type));
             app.Run();
         }
     }

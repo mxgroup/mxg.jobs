@@ -3,7 +3,7 @@ using Samples.Logic;
 
 namespace Samples.Jobs
 {
-    public class TestJob2 : QuartzJob4
+    public class TestJob2 : SingleCallCronJob
     {
         private readonly TestLogic _testLogic;
 

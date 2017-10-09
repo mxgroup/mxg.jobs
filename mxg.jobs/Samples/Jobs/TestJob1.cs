@@ -3,7 +3,7 @@ using Samples.Logic;
 
 namespace Samples.Jobs
 {
-    public class TestJob1 : QuartzJob4
+    public class TestJob1 : SingleCallCronJob
     {
         private readonly TestLogic _testLogic;
 
@@ -12,7 +12,7 @@ namespace Samples.Jobs
             _testLogic = testLogic;
         }
 
-        public override string CronExpression => CronHelper.Seconds(1);
+        public override string CronExpression => CronHelper.Seconds(45);
 
         public override void Execute()
         {

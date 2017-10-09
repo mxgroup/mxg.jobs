@@ -1,23 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Quartz;
-using Quartz.Impl.Matchers;
 
 namespace Mxg.Jobs.Gui
 {
     public class MainViewModel : INotifyPropertyChanged
     {
         private ObservableCollection<JobPresentationEntity> _jobs;
-        private IScheduler _scheduler;
-
-        //public void SetJobs(IEnumerable<QuartzJob> jobs)
-        //{
-        //    Jobs = new ObservableCollection<JobPresentationEntity>(jobs.Select(x => new JobPresentationEntity(x)));
-        //}
 
         public ObservableCollection<JobPresentationEntity> Jobs
         {
@@ -37,7 +29,7 @@ namespace Mxg.Jobs.Gui
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public void SetJobs(Dictionary<QuartzJob4, IScheduler> jobDictionary)
+        public void SetJobs(List<SingleCallCronJob> jobDictionary)
         {
             Jobs = new ObservableCollection<JobPresentationEntity>(jobDictionary
                 .Select(job => new JobPresentationEntity(job)));
