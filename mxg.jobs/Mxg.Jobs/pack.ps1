@@ -1,0 +1,1 @@
+nuget pack Mxg.Jobs.csproj -properties Configuration=Release

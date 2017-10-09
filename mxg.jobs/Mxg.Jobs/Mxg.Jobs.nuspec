@@ -1,0 +1,17 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Mxg.Jobs</id>
+    <version>0.0.1</version>
+    <title>Mxg Jobs</title>
+    <authors>shnipov</authors>
+    <owners>mxgroup</owners>
+    <licenseUrl>https://github.com/mxgroup/mxg.jobs</licenseUrl>
+    <projectUrl>https://github.com/mxgroup/mxg.jobs</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Mxg jobs library</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags></tags>
+  </metadata>
+</package>
