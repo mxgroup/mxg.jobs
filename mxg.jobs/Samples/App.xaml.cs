@@ -24,7 +24,7 @@ namespace Samples
             
             // Запуск
             var app = new JobsApplication(jobList, type => (SingleCallCronJob)container.GetInstance(type));
-            app.Run();
+            app.Run(false);
         }
     }
 }

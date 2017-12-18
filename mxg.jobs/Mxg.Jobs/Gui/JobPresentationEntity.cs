@@ -11,7 +11,7 @@ namespace Mxg.Jobs.Gui
         private string _name;
         private string _status;
 
-        public JobPresentationEntity(SingleCallCronJob job)
+        public JobPresentationEntity(SingleCallCronJob job,bool cluster)
         {
             Name = job.GetType().Name;
 
@@ -23,7 +23,7 @@ namespace Mxg.Jobs.Gui
             });
             StopCommand = new RelayCommand(param =>
             {
-                job.Stop();
+                job.Stop(cluster);
                 Status = StoppedStatusText;
             });
 
