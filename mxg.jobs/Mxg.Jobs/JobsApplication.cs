@@ -141,7 +141,6 @@ namespace Mxg.Jobs
                     scheduler.Shutdown();
                     Stopped?.Invoke();
                 };
-
                 ServiceBase.Run(new ServiceBase[] { jobService });
             }
         }

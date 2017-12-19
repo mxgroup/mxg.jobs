@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Mxg.Jobs</id>
-    <version>0.0.1</version>
+    <version>0.0.3</version>
     <title>Mxg Jobs</title>
     <authors>shnipov</authors>
     <owners>mxgroup</owners>
@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/mxgroup/mxg.jobs</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Mxg jobs library</description>
-    <releaseNotes>Initial release</releaseNotes>
+    <releaseNotes>Removing unused references</releaseNotes>
     <copyright>Copyright 2017</copyright>
     <tags></tags>
   </metadata>
