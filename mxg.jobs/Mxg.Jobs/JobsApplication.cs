@@ -1,12 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using Mxg.Jobs.Gui;
+п»їusing Mxg.Jobs.Gui;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Linq;
+using System.ServiceProcess;
 
 namespace Mxg.Jobs
 {
@@ -19,79 +20,117 @@ namespace Mxg.Jobs
 
         private readonly IEnumerable<Type> _jobTypes;
         private readonly Func<Type, SingleCallCronJob> _getJobInstance;
-
+        private NameValueCollection propertiesDB;
         public JobsApplication(IEnumerable<Type> jobTypes, Func<Type, SingleCallCronJob> getJobInstance = null)
         {
             _jobTypes = jobTypes;
             _getJobInstance = getJobInstance;
         }
 
-        public void Run()
+        
+        public void Run(bool cluster)
         {
             // TODO:
             /*
-             * + Переименовать классы и интерфейсы
-             * + Внести шедулер внутрь джоба
-             * - Добавить листенеры на мисфаер, ошибки и прочее
-             * - Написать тесты
-             * - Добавить синхронизацию между машинами
+             * + РџРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ РєР»Р°СЃСЃС‹ Рё РёРЅС‚РµСЂС„РµР№СЃС‹ 
+             * + Р’РЅРµСЃС‚Рё С€РµРґСѓР»РµСЂ РІРЅСѓС‚СЂСЊ РґР¶РѕР±Р°
+             * - Р”РѕР±Р°РІРёС‚СЊ Р»РёСЃС‚РµРЅРµСЂС‹ РЅР° РјРёСЃС„Р°РµСЂ, РѕС€РёР±РєРё Рё РїСЂРѕС‡РµРµ
+             * - РќР°РїРёСЃР°С‚СЊ С‚РµСЃС‚С‹
+             * - Р”РѕР±Р°РІРёС‚СЊ СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЋ РјРµР¶РґСѓ РјР°С€РёРЅР°РјРё
              */
+           ISchedulerFactory schedulerFactory;
+            if (cluster)
+            {
+                if (propertiesDB != null)
+                {
+                    schedulerFactory = new StdSchedulerFactory(propertiesDB);
+                }
+                else
+                {
+                    throw new Exception("РќРµС‚ РЅР°СЃС‚СЂРѕРµРє DB");
+                }
+            }
+            else
+            {
+                schedulerFactory = new StdSchedulerFactory();
+            }
 
-            ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
             IJobFactory customJobFactory = new CustomJobFactory(type => _getJobInstance(type));
 
-            // NB: GetScheduler() возвращает Singleton - один и тот же инстанс IScheduler
+            // NB: GetScheduler() РІРѕР·РІСЂР°С‰Р°РµС‚ Singleton - РѕРґРёРЅ Рё С‚РѕС‚ Р¶Рµ РёРЅСЃС‚Р°РЅСЃ IScheduler
             IScheduler scheduler = schedulerFactory.GetScheduler();
-            scheduler.JobFactory = customJobFactory;
-
+            scheduler.JobFactory = customJobFactory;            
             List<SingleCallCronJob> jobs = _jobTypes.Select(x => _getJobInstance(x)).ToList();
 
             foreach (SingleCallCronJob job in jobs)
             {
-                Type jobType = job.GetType();
+                try
+                {
+                    Type jobType = job.GetType();
 
-                job.Scheduler = scheduler;
+                    job.Scheduler = scheduler;
 
-                IJobDetail jobDetail = JobBuilder.Create(jobType)
-                    .WithIdentity(jobType.Name, jobType.Namespace)
-                    .Build();
-                job.JobDetail = jobDetail;
+                    IJobDetail jobDetail = JobBuilder.Create(jobType)
+                        .WithIdentity(jobType.Name, jobType.Namespace)
+                        .RequestRecovery()
+                        .Build();
+                    job.JobDetail = jobDetail;
 
-                ITrigger trigger = TriggerBuilder.Create()
-                    .WithIdentity(jobType.Name, jobType.Namespace)
-                    .WithCronSchedule(job.CronExpression)
-                    .Build();
-                job.Trigger = trigger;
+                    ITrigger trigger = TriggerBuilder.Create()
+                        .WithIdentity(jobType.Name, jobType.Namespace)
+                        .StartAt(DateBuilder.FutureDate(1, IntervalUnit.Second))
+                        .WithCronSchedule(job.CronExpression)
+                        .Build();
 
-                scheduler.ScheduleJob(jobDetail, trigger);
+                    job.Trigger = trigger;
+                    // Р•СЃР»Рё Р·Р°РґР°С‡Р° СѓР¶Рµ РґРѕР±Р°РІР»РµРЅР°, С‚Рѕ РЅРµ РґРѕР±Р°РІР»СЏРµРј РµРµ
+                    if (scheduler.GetJobDetail(jobDetail.Key) == null)
+                    {
+                        scheduler.ScheduleJob(jobDetail, trigger);
+                    }
+                }
+                //РІ DB РЅРµ РґРѕР±Р°РІР»РµРЅС‹ РЅСѓР¶РЅС‹Рµ С‚Р°Р±Р»РёС†С‹
+                catch (JobPersistenceException exc)
+                {
+                    throw;
+
+                }
+            }
+            // РЎС‚Р°РІРёРј РІСЃС‘ РЅР° РїР°СѓР·Сѓ, РµСЃР»Рё РјС‹ РЅРµ РёР· РєР»Р°СЃС‚РµСЂРЅРѕРіРѕ СЂРµС€РµРЅРёСЏ: РґР»СЏ GUI Р¶РґС‘Рј СЂСѓС‡РЅРѕРіРѕ Р·Р°РїСѓСЃРєР°, РґР»СЏ СЃР»СѓР¶Р±С‹ Р¶РґС‘Рј РІС‹Р·РѕРІР° OnStart()
+            if (!cluster)
+            {
+                scheduler.PauseAll();
             }
 
-            // Ставим всё на паузу: для GUI ждём ручного запуска, для службы ждём вызова OnStart()
-            scheduler.PauseAll();
-            
             if (Environment.UserInteractive || Debugger.IsAttached)
             {
                 var viewModel = new MainViewModel();
-                viewModel.SetJobs(jobs);
+                viewModel.SetJobs(jobs,cluster);
 
                 var window = new MainWindow { DataContext = viewModel };
                 window.Show();
                 window.Closed += (sender, args) =>
                 {
-                    foreach (var job in viewModel.Jobs)
+                    if (!cluster)
                     {
-                        job.StopCommand.Execute(null);
+                        foreach (var job in viewModel.Jobs)
+                        {
+                            job.StopCommand.Execute(null);
+                        }
                     }
                     scheduler.Shutdown();
                     Stopped?.Invoke();
                 };
-                scheduler.Start();
+                if (!cluster)
+                {
+                    scheduler.Start();
+                }
                 Started?.Invoke();
             }
             else
             {
 
-                var jobService = new JobService(jobs);
+                var jobService = new JobService(jobs,cluster);
                 jobService.Started += () =>
                 {
                     scheduler.Start();
@@ -102,9 +141,13 @@ namespace Mxg.Jobs
                     scheduler.Shutdown();
                     Stopped?.Invoke();
                 };
-
                 ServiceBase.Run(new ServiceBase[] { jobService });
             }
+        }
+
+        public void InitDB(NameValueCollection properties)
+        {
+            this.propertiesDB = properties;
         }
     }
 }

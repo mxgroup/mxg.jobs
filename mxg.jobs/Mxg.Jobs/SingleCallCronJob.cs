@@ -14,19 +14,28 @@ namespace Mxg.Jobs
         public abstract string CronExpression { get; }
 
         /// <inheritdoc />
-        public void Execute(IJobExecutionContext context)
+        public virtual void Execute(IJobExecutionContext context)
         {
             Execute();
         }
 
         public void Start()
         {
+            Scheduler.Start();
             Scheduler.ResumeJob(JobDetail.Key);
+
         }
 
-        public void Stop()
+        public void Stop(bool cluster)
         {
-            Scheduler.PauseJob(JobDetail.Key);
+            if (cluster)
+            {
+                Scheduler.Standby();
+            }
+            else
+            {
+                Scheduler.PauseJob(JobDetail.Key);
+            }
         }
 
         public abstract void Execute();

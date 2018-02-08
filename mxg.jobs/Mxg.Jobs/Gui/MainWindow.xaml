@@ -19,7 +19,8 @@
             <Setter Property="Margin" Value="3"></Setter>
         </Style>
     </Window.Resources>
-    <DockPanel d:DataContext="{StaticResource MainViewModel}">
+    <DockPanel d:DataContext="{StaticResource MainViewModel}"  >
+        <TextBlock DockPanel.Dock="Top"   Text="{Binding Path=Cluster}"></TextBlock>
         <Label DockPanel.Dock="Top">Job'ы</Label>
         <ListView ItemsSource="{Binding Path=Jobs}" Grid.IsSharedSizeScope="True">
             <ListView.ItemTemplate>

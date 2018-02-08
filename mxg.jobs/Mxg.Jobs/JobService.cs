@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ServiceProcess;
-using Quartz;
 
 namespace Mxg.Jobs
 {
     internal class JobService : ServiceBase
     {
         private readonly List<SingleCallCronJob> _jobs;
-
+        private readonly bool _cluster;
         public event Action Started;
         public event Action Stopped;
 
-        public JobService(List<SingleCallCronJob> jobs)
+        public JobService(List<SingleCallCronJob> jobs, bool cluster)
         {
             _jobs = jobs;
+            _cluster = cluster;
             ServiceName = GetType().Name;
         }
 
@@ -28,14 +28,14 @@ namespace Mxg.Jobs
         protected override void OnStop()
         {
             base.OnStop();
-            StopJobs();
+            StopJobs(_cluster);
             Stopped?.Invoke();
         }
 
         protected override void OnPause()
         {
             base.OnPause();
-            StopJobs();
+            StopJobs(_cluster);
         }
 
         protected override void OnContinue()
@@ -52,11 +52,11 @@ namespace Mxg.Jobs
             }
         }
 
-        private void StopJobs()
+        private void StopJobs(bool cluster)
         {
             foreach (var job in _jobs)
             {
-                job.Stop();
+                job.Stop(cluster);
             }
         }
     }
