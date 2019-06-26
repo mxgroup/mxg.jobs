@@ -1,4 +1,5 @@
-﻿using Quartz;
+﻿using System.Threading.Tasks;
+using Quartz;
 
 namespace Mxg.Jobs
 {
@@ -14,9 +15,9 @@ namespace Mxg.Jobs
         public abstract string CronExpression { get; }
 
         /// <inheritdoc />
-        public virtual void Execute(IJobExecutionContext context)
+        public virtual async Task Execute(IJobExecutionContext context)
         {
-            Execute();
+            await Execute();
         }
 
         public void Start()
@@ -38,6 +39,6 @@ namespace Mxg.Jobs
             }
         }
 
-        public abstract void Execute();
+        public abstract Task Execute();
     }
 }

@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
+using System.Threading.Tasks;
 
 namespace Mxg.Jobs
 {
@@ -28,7 +29,7 @@ namespace Mxg.Jobs
         }
 
         
-        public void Run(bool cluster)
+        public async Task Run(bool cluster)
         {
             // TODO:
             /*
@@ -58,7 +59,7 @@ namespace Mxg.Jobs
             IJobFactory customJobFactory = new CustomJobFactory(type => _getJobInstance(type));
 
             // NB: GetScheduler() возвращает Singleton - один и тот же инстанс IScheduler
-            IScheduler scheduler = schedulerFactory.GetScheduler();
+            IScheduler scheduler = await schedulerFactory.GetScheduler();
             scheduler.JobFactory = customJobFactory;            
             List<SingleCallCronJob> jobs = _jobTypes.Select(x => _getJobInstance(x)).ToList();
 
@@ -84,22 +85,21 @@ namespace Mxg.Jobs
 
                     job.Trigger = trigger;
                     // Если задача уже добавлена, то не добавляем ее
-                    if (scheduler.GetJobDetail(jobDetail.Key) == null)
+                    if (await scheduler.GetJobDetail(jobDetail.Key) == null)
                     {
-                        scheduler.ScheduleJob(jobDetail, trigger);
+                        await scheduler.ScheduleJob(jobDetail, trigger);
                     }
                 }
                 //в DB не добавлены нужные таблицы
                 catch (JobPersistenceException exc)
                 {
                     throw;
-
                 }
             }
             // Ставим всё на паузу, если мы не из кластерного решения: для GUI ждём ручного запуска, для службы ждём вызова OnStart()
             if (!cluster)
             {
-                scheduler.PauseAll();
+                await scheduler.PauseAll();
             }
 
             if (Environment.UserInteractive || Debugger.IsAttached)
@@ -109,7 +109,7 @@ namespace Mxg.Jobs
 
                 var window = new MainWindow { DataContext = viewModel };
                 window.Show();
-                window.Closed += (sender, args) =>
+                window.Closed += async (sender, args) =>
                 {
                     if (!cluster)
                     {
@@ -118,12 +118,12 @@ namespace Mxg.Jobs
                             job.StopCommand.Execute(null);
                         }
                     }
-                    scheduler.Shutdown();
+                    await scheduler.Shutdown();
                     Stopped?.Invoke();
                 };
                 if (!cluster)
                 {
-                    scheduler.Start();
+                    await scheduler.Start();
                 }
                 Started?.Invoke();
             }
@@ -131,14 +131,14 @@ namespace Mxg.Jobs
             {
 
                 var jobService = new JobService(jobs,cluster);
-                jobService.Started += () =>
+                jobService.Started += async () =>
                 {
-                    scheduler.Start();
+                    await scheduler.Start();
                     Started?.Invoke();
                 };
-                jobService.Stopped += () =>
+                jobService.Stopped += async () =>
                 {
-                    scheduler.Shutdown();
+                    await scheduler.Shutdown();
                     Stopped?.Invoke();
                 };
                 ServiceBase.Run(new ServiceBase[] { jobService });

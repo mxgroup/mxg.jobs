@@ -1,4 +1,5 @@
-﻿using Mxg.Jobs;
+﻿using System.Threading.Tasks;
+using Mxg.Jobs;
 using Samples.Logic;
 
 namespace Samples.Jobs
@@ -14,7 +15,7 @@ namespace Samples.Jobs
 
         public override string CronExpression => CronHelper.Seconds(45);
 
-        public override void Execute()
+        public override async Task Execute()
         {
             _testLogic.DoTestWork1();
         }
